@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KScribe Test Case Generator</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f7f7f7; margin: 0; padding: 0; }
+    .container { max-width: 700px; margin: 40px auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #0001; padding: 32px; }
+    h1 { color: #2d6cdf; }
+    textarea { width: 100%; min-height: 100px; font-size: 1rem; padding: 8px; border-radius: 4px; border: 1px solid #ccc; margin-bottom: 16px; }
+    button { background: #2d6cdf; color: #fff; border: none; padding: 12px 24px; border-radius: 4px; font-size: 1rem; cursor: pointer; transition: background 0.2s; }
+    button:hover { background: #1a4fa0; }
+    table { width: 100%; border-collapse: collapse; margin-top: 24px; }
+    th, td { border: 1px solid #e0e0e0; padding: 8px; text-align: left; word-break: break-word; white-space: pre-line; max-width: 300px; }
+    th { background: #f0f4fa; }
+    .footer { margin-top: 32px; color: #888; font-size: 0.95em; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>KScribe Test Case Generator</h1>
+    <p>Paste your English requirements below and generate structured test cases instantly!</p>
+    <textarea id="requirements" placeholder="E.g. If the user enters an invalid email, show an error; else proceed to dashboard."></textarea>
+    <button onclick="generateTestCases()">Generate Test Cases</button>
+    <button onclick="downloadCsv()" style="margin-left:12px;">Download as CSV</button>
+    <div id="result"></div>
+    <div class="footer">&copy; 2025 KScribe &mdash; Powered by Java, Spring Boot, and OpenNLP</div>
+  </div>
+  <script>
+    async function downloadCsv() {
+      const reqText = document.getElementById('requirements').value.trim();
+      if (!reqText) {
+        alert('Please enter at least one requirement.');
+        return;
+      }
+      try {
+        const response = await fetch('http://localhost:8080/api/requirements/to-csv', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify([{ text: reqText }])
+        });
+        if (!response.ok) throw new Error('Failed to download CSV');
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'testcases.csv';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      } catch (e) {
+        alert('Error: ' + e);
+      }
+    }
+
+    async function generateTestCases() {
+      const reqText = document.getElementById('requirements').value.trim();
+      if (!reqText) {
+        alert('Please enter at least one requirement.');
+        return;
+      }
+      document.getElementById('result').innerHTML = 'Generating...';
+      try {
+        const response = await fetch('http://localhost:8080/api/requirements/to-testcases', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify([{ text: reqText }])
+        });
+        const data = await response.json();
+        if (!data.testCases || !data.testCases.length) {
+          document.getElementById('result').innerHTML = '<p>No test cases generated.</p>';
+          return;
+        }
+        document.getElementById('result').innerHTML = `<p><b>${data.testCases.length} test cases generated. Click 'Download as CSV' to save them.</b></p>`;
+      } catch (e) {
+        document.getElementById('result').innerHTML = '<p style="color:red">Error: ' + e + '</p>';
+      }
+    }
+  </script>
+</body>
+</html> 
