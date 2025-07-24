@@ -68,8 +68,6 @@ A minimal web frontend is included for demo and user convenience. To use:
 ![Screenshot 1](1.png)
 ![Screenshot 2](2.png)
 
-*Add screenshots or GIFs of the API and frontend in action here!*
-
 ---
 
 ## 📄 Example Input
